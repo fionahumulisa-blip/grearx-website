@@ -40,6 +40,7 @@ if(el("next"))el("next").onclick=()=>select(current+1);
 }
 
 
+const get=id=>document.getElementById(id);
 const challengeBank={
 prompt:[
 ["Your school wants to reduce food waste. Ask AI to help design a student-led solution.","Include the audience, school context, a practical format and a way to test the idea."],
@@ -83,7 +84,6 @@ get("creator-export").onclick=()=>{const blob=new Blob([JSON.stringify({version:
 get("creator-clear").onclick=()=>{if(confirm("Delete all saved creator projects from this browser?")){creatorProjects=[];saveCreators();renderCreators()}};
 get("challenge-save").onclick=()=>{const answer=get("challenge-answer").value.trim();if(!answer){get("challenge-status").textContent="Write your reflection first.";return}const p={title:"Challenge: "+get("challenge-skill").selectedOptions[0].text,kind:"Challenge reflection",problem:activeChallenge,build:answer,test:"",next:"",date:new Date().toLocaleDateString()};creatorProjects.unshift(p);creatorProjects=creatorProjects.slice(0,20);saveCreators();renderCreators();get("challenge-status").textContent="Reflection added to your Creator Portfolio below."};renderCreators();
 const promptKey="boundlessy-prompt-lab-v1";let notebook=[];try{notebook=JSON.parse(localStorage.getItem(promptKey)||"[]");if(!Array.isArray(notebook))notebook=[]}catch{}
-const get=id=>document.getElementById(id);
 function reviewPrompt(v){let t=v.trim();if(!t)return {score:0,tips:["Start by asking a question or describing an idea."]};let score=20,tips=[];if(t.length>=45)score+=20;else tips.push("Add a little more detail about what you want.");if(/student|beginner|child|teacher|farmer|age|year.old|grade|audience|for a/i.test(t))score+=20;else tips.push("Who is the answer for? Try saying 'for a 15-year-old student'.");if(/example|step|list|table|story|paragraph|explain|compare|quiz|plan|bullet/i.test(t))score+=20;else tips.push("Choose a format: examples, steps, a story, or a table.");if(/because|why|how|context|rwanda|school|local|simple|specific|include/i.test(t))score+=20;else tips.push("Add context, such as where or why you'll use the answer.");return {score,tips:tips.length?tips:["Clear request! Try changing one detail and compare the results."]}}
 function updateReview(){for(const [letter,id] of [["A","promptA"],["B","promptB"]]){const r=reviewPrompt(get(id).value);get("score"+letter).textContent=r.score?("Prompt clarity guide: "+r.score+"/100"):"Start typing to explore";get("tips"+letter).textContent=r.tips.join(" • ")}}
 get("promptA").addEventListener("input",updateReview);get("promptB").addEventListener("input",updateReview);
