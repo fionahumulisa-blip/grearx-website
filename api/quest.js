@@ -6,6 +6,7 @@ module.exports=async function handler(req,res){
   const key=process.env.OPENROUTER_API_KEY;
   if(!key)return res.status(503).json({error:"Live AI is not configured. Please contact the site owner."});
   const model=process.env.QUEST_AI_MODEL||"openrouter/auto";
+  const history=Array.isArray(req.body?.history)?req.body.history.slice(-10).filter(m=>m&&(m.role==="user"||m.role==="assistant")&&typeof m.content==="string"&&m.content.length<=900).map(m=>({role:m.role,content:m.content})):[];
   const system="You are Byte, a friendly AI creation coach for students aged 13–18. Give useful, concise, complete answers. Answer questions directly, then offer one actionable next step. Encourage independent creation and verification. Never ask for private information. Avoid unsafe content. Do not claim to have built something that you haven't.";
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),24000);
@@ -13,7 +14,7 @@ module.exports=async function handler(req,res){
     const upstream=await fetch("https://openrouter.ai/api/v1/chat/completions",{
       method:"POST",signal:controller.signal,
       headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json","HTTP-Referer":"https://boundlessy-global.vercel.app","X-Title":"Boundlessy AI Quest"},
-      body:JSON.stringify({model,max_tokens:1100,temperature:0.5,reasoning:{effort:"minimal"},messages:[{role:"system",content:system},{role:"user",content:prompt}]})
+      body:JSON.stringify({model,max_tokens:1100,temperature:0.5,reasoning:{effort:"minimal"},messages:[{role:"system",content:system+" In Creator Studio, treat each message as part of the same conversation. Refer to earlier details and your previous suggested activity when relevant. A follow-up is not a new project. Do not force a new task after every response."},...history,{role:"user",content:prompt}]})
     });
     let data={};try{data=await upstream.json()}catch{}
     if(!upstream.ok){
